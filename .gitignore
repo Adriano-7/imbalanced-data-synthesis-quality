@@ -1,2 +1,13 @@
-gitingest.txt
+digest.txt
 script.py
+arquive/
+
+# Data files
+/data/raw/
+/data/processed/
+/data/synthetic/
+
+# Environment folders
+__pycache__/
+
+# Jupyter Notebook checkpoints
