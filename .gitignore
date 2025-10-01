@@ -11,3 +11,7 @@ arquive/
 __pycache__/
 
 # Jupyter Notebook checkpoints
+
+data/
+
+*.bkp
