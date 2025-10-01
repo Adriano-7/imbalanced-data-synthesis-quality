@@ -10,7 +10,7 @@
 # The dataset contains 961 mammographic mass cases with BI-RADS attributes and patient demographics. The target variable is `Severity`, classified as benign (0) or malignant (1). This analysis aims to reduce unnecessary biopsies by identifying patterns that can improve diagnostic accuracy.
 # 
 
-# In[120]:
+# In[148]:
 
 
 import pandas as pd
@@ -22,11 +22,11 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from scipy import stats
 from sklearn.preprocessing import LabelEncoder
-from ucimlrepo import fetch_ucirepo  
+from ucimlrepo import fetch_ucirepo 
 
-COLOR_PALETTE = 'viridis'
-COLORS_BINARY = ['#2ecc71', '#e74c3c']  
+COLOR_PALETTE = 'rocket_r' 
 sns.set_style("whitegrid")
+COLORS_BINARY = sns.color_palette(COLOR_PALETTE, 2) 
 plt.rcParams['figure.figsize'] = (12, 6)
 
 mammographic_mass = fetch_ucirepo(id=161)
@@ -50,7 +50,7 @@ print(df.head(10))
 # Let's examine the structure, types, and completeness of our dataset.
 # 
 
-# In[121]:
+# In[149]:
 
 
 print("=" * 80)
@@ -63,7 +63,7 @@ print("=" * 80)
 print(df.describe())
 
 
-# In[122]:
+# In[150]:
 
 
 missing_stats = pd.DataFrame({
@@ -91,7 +91,7 @@ print(missing_stats.to_string(index=False))
 # 
 # We need to investigate whether missing values are random or systematic.
 
-# In[123]:
+# In[151]:
 
 
 severity_map = {0: 'Benign', 1: 'Malignant'}
@@ -104,7 +104,7 @@ for col in ['Age', 'Shape', 'Margin', 'Density']:
     print(missing_by_severity)
 
 
-# In[124]:
+# In[152]:
 
 
 fig, axes = plt.subplots(1, 2, figsize=(16, 5))
@@ -135,7 +135,7 @@ plt.show()
 # 
 # Let's use Multivariate Imputation by Chained Equations (MICE) to impute our missing values.
 
-# In[125]:
+# In[153]:
 
 
 from sklearn.experimental import enable_iterative_imputer
@@ -168,7 +168,7 @@ print("\nDataFrame is updated and ready for plotting.")
 df.head()
 
 
-# In[126]:
+# In[154]:
 
 
 print(f"\nMissing values remaining: {df_imputed.isnull().sum().sum()}")
@@ -189,7 +189,7 @@ df.head()
 # Medical data can contain extreme values that are either measurement errors or genuine rare cases. Let's investigate potential outliers.
 # 
 
-# In[127]:
+# In[155]:
 
 
 print(df['Age'].describe())
@@ -199,12 +199,12 @@ age_outliers = df[(df['Age'] < 18) | (df['Age'] > 95)]
 print(f"\nPotential age outliers (< 18 or > 95): {len(age_outliers)}")
 
 
-# In[128]:
+# In[ ]:
 
 
 fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
-sns.histplot(data=df, x='Age', bins=30, kde=True, ax=axes[0], color='steelblue')
+sns.histplot(data=df, x='Age', bins=30, kde=True, ax=axes[0], color=sns.color_palette(COLOR_PALETTE)[2])
 axes[0].set_title('Age Distribution', fontsize=14, fontweight='bold')
 axes[0].set_xlabel('Age (years)')
 axes[0].set_ylabel('Count')
@@ -213,7 +213,7 @@ axes[0].axvline(df['Age'].mean(), color='red', linestyle='--',
 axes[0].legend()
 
 sns.boxplot(data=df, x='Severity', y='Age', ax=axes[1], 
-            palette=COLORS_BINARY, hue='Severity', legend=False)
+            palette=COLOR_PALETTE, hue='Severity', legend=False)
 axes[1].set_title('Age Distribution by Severity', fontsize=14, fontweight='bold')
 axes[1].set_xlabel('Severity (0=Benign, 1=Malignant)')
 axes[1].set_ylabel('Age (years)')
@@ -237,7 +237,7 @@ plt.show()
 # 
 # Understanding the class balance is crucial for both interpretation and modeling strategy.
 
-# In[129]:
+# In[ ]:
 
 
 severity_counts = df['Severity'].value_counts().sort_index()
@@ -256,10 +256,10 @@ ax1.set_xlabel('Diagnosis', fontsize=12)
 for i, (bar, count, pct) in enumerate(zip(bars, severity_counts.values, severity_pct.values)):
     height = bar.get_height()
     ax1.text(bar.get_x() + bar.get_width()/2., height,
-            f'{count}\n({pct}%)',
-            ha='center', va='bottom', fontsize=11, fontweight='bold')
+             f'{count}\n({pct}%)',
+             ha='center', va='bottom', fontsize=11, fontweight='bold')
 
-colors_pie = ['#2ecc71', '#e74c3c']
+colors_pie = COLORS_BINARY
 explode = (0.05, 0.05)
 ax2 = axes[1]
 wedges, texts, autotexts = ax2.pie(severity_counts.values, 
@@ -280,7 +280,6 @@ print(f"Malignant (1): {severity_counts[1]} cases ({severity_pct[1]}%)")
 print(f"\nClass ratio (Benign:Malignant): {severity_counts[0]/severity_counts[1]:.2f}:1")
 
 
-
 # 
 # As seen in the chart, the target variable, `Severity`, has a well-balanced class distribution. 
 
@@ -289,10 +288,9 @@ print(f"\nClass ratio (Benign:Malignant): {severity_counts[0]/severity_counts[1]
 # Let's examine the distribution of each feature to understand their ranges and characteristics.
 # 
 
-# In[130]:
+# In[ ]:
 
 
-# Create categorical labels for better visualization
 feature_labels = {
     'BI-RADS': {1: '1-Definitely\nBenign', 2: '2-Benign', 3: '3-Probably\nBenign', 
                 4: '4-Suspicious', 5: '5-Highly\nSuspicious'},
@@ -308,7 +306,7 @@ fig.suptitle('Feature Distributions in the Mammographic Mass Dataset',
 
 # Age (continuous)
 ax = axes[0, 0]
-sns.histplot(data=df, x='Age', bins=25, kde=True, ax=ax, color='steelblue')
+sns.histplot(data=df, x='Age', bins=25, kde=True, ax=ax, color=sns.color_palette(COLOR_PALETTE)[2])
 ax.set_title('Age Distribution', fontsize=12, fontweight='bold')
 ax.set_xlabel('Age (years)')
 ax.axvline(df['Age'].median(), color='red', linestyle='--', 
@@ -319,13 +317,13 @@ ax.legend()
 ax = axes[0, 1]
 birads_counts = df['BI-RADS'].value_counts().sort_index()
 bars = ax.bar(range(len(birads_counts)), birads_counts.values, 
-              color=sns.color_palette('RdYlGn_r', n_colors=5))
+              color=sns.color_palette(COLOR_PALETTE, n_colors=5))
 ax.set_title('BI-RADS Assessment Distribution', fontsize=12, fontweight='bold')
 ax.set_xlabel('BI-RADS Category')
 ax.set_ylabel('Count')
 ax.set_xticks(range(len(birads_counts)))
 ax.set_xticklabels([feature_labels['BI-RADS'][i] for i in birads_counts.index], 
-                    rotation=45, ha='right', fontsize=9)
+                   rotation=45, ha='right', fontsize=9)
 for i, (bar, val) in enumerate(zip(bars, birads_counts.values)):
     ax.text(bar.get_x() + bar.get_width()/2., bar.get_height(),
             f'{val}', ha='center', va='bottom', fontsize=9)
@@ -334,7 +332,7 @@ for i, (bar, val) in enumerate(zip(bars, birads_counts.values)):
 ax = axes[0, 2]
 shape_counts = df['Shape'].value_counts().sort_index()
 bars = ax.bar(range(len(shape_counts)), shape_counts.values, 
-              color=sns.color_palette('Set2', n_colors=4))
+              color=sns.color_palette(COLOR_PALETTE, n_colors=4))
 ax.set_title('Mass Shape Distribution', fontsize=12, fontweight='bold')
 ax.set_xlabel('Shape Type')
 ax.set_ylabel('Count')
@@ -348,13 +346,13 @@ for bar, val in zip(bars, shape_counts.values):
 ax = axes[1, 0]
 margin_counts = df['Margin'].value_counts().sort_index()
 bars = ax.bar(range(len(margin_counts)), margin_counts.values, 
-              color=sns.color_palette('Set3', n_colors=5))
+              color=sns.color_palette(COLOR_PALETTE, n_colors=5))
 ax.set_title('Mass Margin Distribution', fontsize=12, fontweight='bold')
 ax.set_xlabel('Margin Type')
 ax.set_ylabel('Count')
 ax.set_xticks(range(len(margin_counts)))
 ax.set_xticklabels([feature_labels['Margin'][i] for i in margin_counts.index], 
-                    rotation=45, ha='right', fontsize=9)
+                   rotation=45, ha='right', fontsize=9)
 for bar, val in zip(bars, margin_counts.values):
     ax.text(bar.get_x() + bar.get_width()/2., bar.get_height(),
             f'{val}', ha='center', va='bottom', fontsize=9)
@@ -363,7 +361,7 @@ for bar, val in zip(bars, margin_counts.values):
 ax = axes[1, 1]
 density_counts = df['Density'].value_counts().sort_index()
 bars = ax.bar(range(len(density_counts)), density_counts.values, 
-              color=sns.color_palette('Blues', n_colors=4))
+              color=sns.color_palette(COLOR_PALETTE, n_colors=4))
 ax.set_title('Mass Density Distribution', fontsize=12, fontweight='bold')
 ax.set_xlabel('Density Level')
 ax.set_ylabel('Count')
@@ -401,7 +399,7 @@ plt.show()
 # The critical question: How does each feature relate to malignancy? This analysis reveals which features are most predictive.
 # 
 
-# In[131]:
+# In[159]:
 
 
 print("AGE STATISTICS BY SEVERITY")
@@ -419,7 +417,7 @@ else:
     print(f"Conclusion: Age is NOT significantly different between benign and malignant cases (p ≥ 0.05)")
 
 
-# In[132]:
+# In[ ]:
 
 
 fig, axes = plt.subplots(3, 2, figsize=(12, 10))
@@ -429,7 +427,16 @@ fig.suptitle('Feature Distributions by Severity: Benign vs Malignant',
 # 1. Age
 ax = axes[0, 0]
 violin_parts = ax.violinplot([benign_age, malignant_age], 
-                              positions=[0, 1], showmeans=True, showmedians=True)
+                             positions=[0, 1], showmeans=True, showmedians=True)
+colors = COLORS_BINARY
+for pc, color in zip(violin_parts['bodies'], colors):
+    pc.set_facecolor(color)
+    pc.set_edgecolor('black')
+    pc.set_alpha(0.8)
+for partname in ('cbars', 'cmins', 'cmaxes', 'cmeans', 'cmedians'):
+    vp = violin_parts[partname]
+    vp.set_edgecolor('black')
+    vp.set_linewidth(1)
 ax.set_title('Age Distribution by Severity', fontsize=12, fontweight='bold')
 ax.set_xticks([0, 1])
 ax.set_xticklabels(['Benign', 'Malignant'])
@@ -461,7 +468,7 @@ ax.set_xlabel('Shape Type')
 ax.set_ylabel('Percentage (%)')
 ax.set_xticks(x)
 ax.set_xticklabels([feature_labels['Shape'][i] for i in shape_cross.index], 
-                    rotation=15, ha='right')
+                   rotation=15, ha='right')
 ax.legend(title='Severity')
 ax.grid(axis='y', alpha=0.3)
 
@@ -478,7 +485,7 @@ ax.set_xlabel('Margin Type')
 ax.set_ylabel('Percentage (%)')
 ax.set_xticks(x)
 ax.set_xticklabels([feature_labels['Margin'][i] for i in margin_cross.index], 
-                    rotation=15, ha='right', fontsize=9)
+                   rotation=15, ha='right', fontsize=9)
 ax.legend(title='Severity')
 ax.grid(axis='y', alpha=0.3)
 
@@ -533,7 +540,7 @@ plt.show()
 # Understanding how features work together is essential for building effective predictive models.
 # 
 
-# In[133]:
+# In[161]:
 
 
 ordinal_features = ['BI-RADS', 'Age', 'Density', 'Severity']
