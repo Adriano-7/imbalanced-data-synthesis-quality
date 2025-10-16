@@ -20,9 +20,11 @@ MODELS_PATH = BASE_PATH / "models"
 
 TARGET_FEATURE = "Severity"
 RANDOM_STATE = 42
-N_REPEATS = 1  # Number of times to repeat each experiment
+N_REPEATS = 3  # Number of times to repeat each experiment
 
 GENERATORS_TO_TEST = [
+    "ddpm",
+    "nflow",
     "ctgan",
     "tvae",
 ]
@@ -33,7 +35,6 @@ FIGURES_PATH.mkdir(exist_ok=True)
 MODELS_PATH.mkdir(exist_ok=True)
 
 def load_data(train_path: Path, test_path: Path):
-    """Loads the training and testing data from CSV files."""
     print(f"Loading training data from: {train_path.name}")
     train_df = pd.read_csv(train_path)
     test_df = pd.read_csv(test_path)
@@ -41,7 +42,6 @@ def load_data(train_path: Path, test_path: Path):
 
 
 def train_and_evaluate_classifier(train_df: pd.DataFrame, test_df: pd.DataFrame):
-    """Trains a RandomForestClassifier and evaluates its performance."""
     X_train = train_df.drop(columns=[TARGET_FEATURE])
     y_train = train_df[TARGET_FEATURE]
     X_test = test_df.drop(columns=[TARGET_FEATURE])
@@ -52,7 +52,7 @@ def train_and_evaluate_classifier(train_df: pd.DataFrame, test_df: pd.DataFrame)
 
     y_pred = model.predict(X_test)
     y_prob = model.predict_proba(X_test)
-
+    
     # For binary classification, the minority class (malignant) is labeled as 1
     pos_label_idx = 1 if 1 in model.classes_ else 0
 
@@ -73,7 +73,6 @@ def train_and_evaluate_classifier(train_df: pd.DataFrame, test_df: pd.DataFrame)
 
 
 def run_single_experiment(train_path: Path, test_path: Path, generator_name: str, strategy: str, run_id: int):
-    """Runs a single experiment, either baseline or with synthetic data generation."""
     train_df, test_df = load_data(train_path, test_path)
     
     if generator_name.lower() == 'baseline':
@@ -129,10 +128,9 @@ def run_single_experiment(train_path: Path, test_path: Path, generator_name: str
 
 
 def main():
-    """Main function to run the experimental pipeline."""
-    print("=" * 80)
+    print("\n")
     print(" Starting Mammographic Mass Experimental Pipeline ")
-    print("=" * 80)
+    print("\n")
     
     all_results = []
     test_path = PROCESSED_PATH / "test.csv"
@@ -151,16 +149,14 @@ def main():
         train_path = Path(train_path)
         
         for i in range(1, N_REPEATS + 1):
-            print(f"\n{'='*80}")
+            print("\n")
             print(f">>> Dataset: {train_path.name} | Run: {i}/{N_REPEATS} <<<")
-            print('='*80)
+            print("\n")
 
-            # Run baseline
             baseline_result = run_single_experiment(train_path, test_path, "baseline", "N/A", i)
             all_results.append(baseline_result)
             print(f"✓ Baseline - F1-Minority: {baseline_result['f1_minority']:.4f}, ROC-AUC: {baseline_result['roc_auc']:.4f}")
 
-            # Run synthetic data generators
             for generator in GENERATORS_TO_TEST:
                 synthetic_result = run_single_experiment(train_path, test_path, generator, "Naive Oversampling", i)
                 all_results.append(synthetic_result)
@@ -168,7 +164,7 @@ def main():
     
 
     print(" All experiments complete. Saving results... ")
-    print("=" * 80)
+    print("\n")
     
     results_df = pd.DataFrame(all_results)
 
@@ -197,7 +193,7 @@ def main():
     
 
     print(" FINAL SUMMARY REPORT ")
-    print("=" * 80)
+    print("\n")
     print(summary_df.to_string(index=False))
     
 if __name__ == "__main__":
